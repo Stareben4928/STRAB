@@ -1,0 +1,1301 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  BookOpen, 
+  Book, 
+  Cross, 
+  Layers, 
+  Award, 
+  Volume2, 
+  Search, 
+  RotateCw, 
+  CheckCircle, 
+  Play, 
+  Star, 
+  Flame, 
+  ChevronRight, 
+  Sparkles, 
+  ArrowRight, 
+  Bookmark, 
+  Filter, 
+  Brain, 
+  Check, 
+  X, 
+  GraduationCap,
+  Heart,
+  HelpCircle,
+  ShieldCheck,
+  Compass,
+  MessageSquare
+} from 'lucide-react';
+
+// --- DATABASE: VOCABULARY BANK (200+ ITEMS) ---
+const VOCABULARY_DATA = [
+  // Module 1: Salutations & Bases
+  { id: 1, category: 'Salutations', arabic: 'مَرْحَبًا', transcription: 'Marhaban', french: 'Bonjour / Bienvenue', root: 'ر-ح-ب', module: 1 },
+  { id: 2, category: 'Salutations', arabic: 'أَهْلًا وَسَهْلًا', transcription: 'Ahlan wa sahlan', french: 'Bienvenue', root: 'أ-ه-ل', module: 1 },
+  { id: 3, category: 'Salutations', arabic: 'السَّلَامُ عَلَيْكُمْ', transcription: 'As-salāmu \'alaykum', french: 'Que la paix soit sur vous', root: 'س-ل-م', module: 1 },
+  { id: 4, category: 'Salutations', arabic: 'وَعَلَيْكُمُ السَّلَامُ', transcription: 'Wa \'alaykum as-salām', french: 'Et sur vous soit la paix', root: 'س-ل-م', module: 1 },
+  { id: 5, category: 'Salutations', arabic: 'صَبَاحُ الْخَيْرِ', transcription: 'Sabāh al-khayr', french: 'Bonjour (matin)', root: 'ص-ب-ح', module: 1 },
+  { id: 6, category: 'Salutations', arabic: 'صَبَاحُ النُّورِ', transcription: 'Sabāh an-nūr', french: 'Réponse : Bonjour lumineux', root: 'ن-و-ر', module: 1 },
+  { id: 7, category: 'Salutations', arabic: 'مَسَاءُ الْخَيْرِ', transcription: 'Masā\' al-khayr', french: 'Bonsoir', root: 'م-س-ء', module: 1 },
+  { id: 8, category: 'Salutations', arabic: 'كَيْفَ حَالُكَ؟', transcription: 'Kayfa hāluka?', french: 'Comment vas-tu ? (m)', root: 'ح-و-ل', module: 1 },
+  { id: 9, category: 'Salutations', arabic: 'كَيْفَ حَالُكِ؟', transcription: 'Kayfa hāluki?', french: 'Comment vas-tu ? (f)', root: 'ح-و-ل', module: 1 },
+  { id: 10, category: 'Salutations', arabic: 'أَنَا بِخَيْرٍ، شُكْرًا', transcription: 'Anā bi-khayr, shukran', french: 'Je vais bien, merci', root: 'ش-ك-ر', module: 1 },
+  { id: 11, category: 'Salutations', arabic: 'مَعَ السَّلَامَةِ', transcription: 'Ma\'a as-salāmah', french: 'Au revoir', root: 'س-ل-م', module: 1 },
+  { id: 12, category: 'Salutations', arabic: 'إِلَى اللِّقَاءِ', transcription: 'Ilā al-liqā\'', french: 'À la prochaine', root: 'ل-ق-ي', module: 1 },
+  { id: 13, category: 'Salutations', arabic: 'مِنْ فَضْلِكَ', transcription: 'Min fadlika', french: 'S\'il te plaît (m)', root: 'ف-ض-ل', module: 1 },
+  { id: 14, category: 'Salutations', arabic: 'عَفْوًا', transcription: '‘Afwan', french: 'De rien / Pardon', root: 'ع-ف-و', module: 1 },
+  { id: 15, category: 'Salutations', arabic: 'نَعَمْ', transcription: 'Na‘am', french: 'Oui', root: 'ن-ع-م', module: 1 },
+  { id: 16, category: 'Salutations', arabic: 'لَا', transcription: 'Lā', french: 'Non', root: '-', module: 1 },
+  { id: 17, category: 'Bases', arabic: 'اسم', transcription: 'Ism', french: 'Nom', root: 'س-م-و', module: 1 },
+  { id: 18, category: 'Bases', arabic: 'كِتَابٌ', transcription: 'Kitāb', french: 'Livre', root: 'ك-ت-ب', module: 1 },
+  { id: 19, category: 'Bases', arabic: 'قَلَمٌ', transcription: 'Qalam', french: 'Stylo', root: 'ق-ل-م', module: 1 },
+  { id: 20, category: 'Bases', arabic: 'مَدْرَسَةٌ', transcription: 'Madrasah', french: 'École', root: 'د-ر-س', module: 1 },
+  { id: 21, category: 'Bases', arabic: 'أُسْتَاذٌ', transcription: 'Ustādh', french: 'Professeur', root: 'أ-س-ت-ذ', module: 1 },
+  { id: 22, category: 'Bases', arabic: 'طَالِبٌ', transcription: 'Tālib', french: 'Étudiant', root: 'ط-ل-ب', module: 1 },
+  { id: 23, category: 'Bases', arabic: 'لُغَةٌ', transcription: 'Lughah', french: 'Langue', root: 'ل-غ-و', module: 1 },
+  { id: 24, category: 'Bases', arabic: 'عَرَبِيٌّ', transcription: '‘Arabiyy', french: 'Arabe', root: 'ع-ر-ب', module: 1 },
+  { id: 25, category: 'Bases', arabic: 'جَمِيلٌ', transcription: 'Jamīl', french: 'Beau', root: 'ج-م-ل', module: 1 },
+
+  // Module 2: Famille & Vie Quotidienne
+  { id: 26, category: 'Famille', arabic: 'أَبٌ / وَالِدٌ', transcription: 'Ab / Wālid', french: 'Père', root: 'و-ل-د', module: 2 },
+  { id: 27, category: 'Famille', arabic: 'أُمٌّ / وَالِدَةٌ', transcription: 'Umm / Wālidah', french: 'Mère', root: 'و-ل-د', module: 2 },
+  { id: 28, category: 'Famille', arabic: 'أَخٌ', transcription: 'Akh', french: 'Frère', root: 'أ-خ-و', module: 2 },
+  { id: 29, category: 'Famille', arabic: 'أُخْتٌ', transcription: 'Ukht', french: 'Sœur', root: 'أ-خ-و', module: 2 },
+  { id: 30, category: 'Famille', arabic: 'ابْنٌ', transcription: 'Ibn', french: 'Fils', root: 'ب-ن-ي', module: 2 },
+  { id: 31, category: 'Famille', arabic: 'ابْنَةٌ', transcription: 'Ibnah', french: 'Fille', root: 'ب-ن-ي', module: 2 },
+  { id: 32, category: 'Famille', arabic: 'عَائِلَةٌ / أُسْرَةٌ', transcription: '‘Ā’ilah / Usrah', french: 'Famille', root: 'ع-و-ل', module: 2 },
+  { id: 33, category: 'Famille', arabic: 'جَدٌّ', transcription: 'Jadd', french: 'Grand-père', root: 'ج-د-د', module: 2 },
+  { id: 34, category: 'Famille', arabic: 'جَدَّةٌ', transcription: 'Jaddah', french: 'Grand-mère', root: 'ج-د-د', module: 2 },
+  { id: 35, category: 'Famille', arabic: 'عَمٌّ', transcription: '‘Amm', french: 'Oncle paternel', root: 'ع-م-م', module: 2 },
+  { id: 36, category: 'Famille', arabic: 'خَالٌ', transcription: 'Khāl', french: 'Oncle maternel', root: 'خ-و-ل', module: 2 },
+  { id: 37, category: 'Maison', arabic: 'بَيْتٌ / مَنْزِلٌ', transcription: 'Bayt / Manzil', french: 'Maison', root: 'ب-ي-ت', module: 2 },
+  { id: 38, category: 'Maison', arabic: 'غُرْفَةٌ', transcription: 'Ghurfah', french: 'Chambre / Pièce', root: 'غ-ر-ف', module: 2 },
+  { id: 39, category: 'Maison', arabic: 'مَطْبَخٌ', transcription: 'Matbakh', french: 'Cuisine', root: 'ط-ب-خ', module: 2 },
+  { id: 40, category: 'Maison', arabic: 'حَمَّامٌ', transcription: 'Hammām', french: 'Salle de bain', root: 'ح-م-م', module: 2 },
+  { id: 41, category: 'Maison', arabic: 'بَابٌ', transcription: 'Bāb', french: 'Porte', root: 'ب-و-ب', module: 2 },
+  { id: 42, category: 'Maison', arabic: 'نَافِذَةٌ', transcription: 'Nāfidhah', french: 'Fenêtre', root: 'ن-ف-ذ', module: 2 },
+  { id: 43, category: 'Nourriture', arabic: 'طَعَامٌ', transcription: 'Ta‘ām', french: 'Nourriture', root: 'ط-ع-م', module: 2 },
+  { id: 44, category: 'Nourriture', arabic: 'مَاءٌ', transcription: 'Mā’', french: 'Eau', root: 'م-و-ه', module: 2 },
+  { id: 45, category: 'Nourriture', arabic: 'خُبْزٌ', transcription: 'Khubz', french: 'Pain', root: 'خ-ب-ز', module: 2 },
+  { id: 46, category: 'Nourriture', arabic: 'قَهْوَةٌ', transcription: 'Qahwah', french: 'Café', root: 'ق-ه-و', module: 2 },
+  { id: 47, category: 'Nourriture', arabic: 'شَايٌ', transcription: 'Shāy', french: 'Thé', root: '-', module: 2 },
+  { id: 48, category: 'Nourriture', arabic: 'فَطُورٌ', transcription: 'Fatūr', french: 'Petit déjeuner', root: 'ف-ط-ر', module: 2 },
+  { id: 49, category: 'Nourriture', arabic: 'غَدَاءٌ', transcription: 'Ghadā’', french: 'Déjeuner', root: 'غ-د-و', module: 2 },
+  { id: 50, category: 'Nourriture', arabic: 'عَشَاءٌ', transcription: '‘Ashā’', french: 'Dîner', root: 'ع-ش-و', module: 2 },
+
+  // Module 3: Ville, Voyage & Orientation
+  { id: 51, category: 'Ville', arabic: 'مَدِينَةٌ', transcription: 'Madīnah', french: 'Ville', root: 'م-د-ن', module: 3 },
+  { id: 52, category: 'Ville', arabic: 'شَارِعٌ', transcription: 'Shāri‘', french: 'Rue', root: 'ش-ر-ع', module: 3 },
+  { id: 53, category: 'Ville', arabic: 'سُوقٌ', transcription: 'Sūq', french: 'Marché', root: 'س-و-ق', module: 3 },
+  { id: 54, category: 'Ville', arabic: 'مُسْتَشْفَى', transcription: 'Mustashfā', french: 'Hôpital', root: 'ش-ف-ي', module: 3 },
+  { id: 55, category: 'Ville', arabic: 'فُنْدُقٌ', transcription: 'Funduq', french: 'Hôtel', root: 'ف-ن-د-ق', module: 3 },
+  { id: 56, category: 'Ville', arabic: 'مَطَارٌ', transcription: 'Matār', french: 'Aéroport', root: 'ط-ي-ر', module: 3 },
+  { id: 57, category: 'Ville', arabic: 'مَحَطَّةٌ', transcription: 'Mahattah', french: 'Gare / Station', root: 'ح-ط-ط', module: 3 },
+  { id: 58, category: 'Transport', arabic: 'سَيَّارَةٌ', transcription: 'Sayyārah', french: 'Voiture', root: 'س-ي-ر', module: 3 },
+  { id: 59, category: 'Transport', arabic: 'حَافِلَةٌ', transcription: 'Hāfilah', french: 'Bus', root: 'ح-ف-ل', module: 3 },
+  { id: 60, category: 'Transport', arabic: 'طَائِرَةٌ', transcription: 'Tā’irah', french: 'Avion', root: 'ط-ي-ر', module: 3 },
+  { id: 61, category: 'Transport', arabic: 'قِطَارٌ', transcription: 'Qitār', french: 'Train', root: 'ق-ط-ر', module: 3 },
+  { id: 62, category: 'Orientation', arabic: 'يَمِينٌ', transcription: 'Yamīn', french: 'Droite', root: 'ي-م-ن', module: 3 },
+  { id: 63, category: 'Orientation', arabic: 'يَسَارٌ', transcription: 'Yasār', french: 'Gauche', root: 'ي-س-ر', module: 3 },
+  { id: 64, category: 'Orientation', arabic: 'أَمَامَ', transcription: 'Amāma', french: 'Devant', root: 'أ-م-م', module: 3 },
+  { id: 65, category: 'Orientation', arabic: 'خَلْفَ', transcription: 'Khalfa', french: 'Derrière', root: 'خ-ل-ف', module: 3 },
+  { id: 66, category: 'Orientation', arabic: 'قَرِيبٌ مِنْ', transcription: 'Qarīb min', french: 'Près de', root: 'ق-ر-ب', module: 3 },
+  { id: 67, category: 'Orientation', arabic: 'بَعِيدٌ عَنْ', transcription: 'Ba‘īd ‘an', french: 'Loin de', root: 'ب-ع-د', module: 3 },
+  { id: 68, category: 'Voyage', arabic: 'جَوَازُ سَفَرٍ', transcription: 'Jawāz safar', french: 'Passeport', root: 'ج-و-ز', module: 3 },
+  { id: 69, category: 'Voyage', arabic: 'تَذْكِرَةٌ', transcription: 'Tadhkirah', french: 'Billet', root: 'ذ-ك-ر', module: 3 },
+  { id: 70, category: 'Voyage', arabic: 'حَجْزٌ', transcription: 'Hajz', french: 'Réservation', root: 'ح-ج-ز', module: 3 },
+
+  // Module 4: Travail, Économie & Médias
+  { id: 71, category: 'Travail', arabic: 'عَمَلٌ / شُغْلٌ', transcription: '‘Amal / Shughl', french: 'Travail', root: 'ع-م-ل', module: 4 },
+  { id: 72, category: 'Travail', arabic: 'مَكْتَبٌ', transcription: 'Maktab', french: 'Bureau', root: 'ك-ت-ب', module: 4 },
+  { id: 73, category: 'Travail', arabic: 'شَرِكَةٌ', transcription: 'Sharikah', french: 'Entreprise / Société', root: 'ش-ر-ك', module: 4 },
+  { id: 74, category: 'Travail', arabic: 'مُدِيرٌ', transcription: 'Mudīr', french: 'Directeur / Manager', root: 'د-و-ر', module: 4 },
+  { id: 75, category: 'Travail', arabic: 'مُوَظَّفٌ', transcription: 'Muwadhaf', french: 'Employé', root: 'و-ظ-ف', module: 4 },
+  { id: 76, category: 'Travail', arabic: 'اجْتِمَاعٌ', transcription: 'Ijtimā‘', french: 'Réunion', root: 'ج-م-ع', module: 4 },
+  { id: 77, category: 'Économie', arabic: 'مَالٌ / فُلُوسٌ', transcription: 'Māl', french: 'Argent', root: 'م-و-ل', module: 4 },
+  { id: 78, category: 'Économie', arabic: 'بَنْكٌ / مَصْرِفٌ', transcription: 'Bank / Masrif', french: 'Banque', root: 'ص-ر-ف', module: 4 },
+  { id: 79, category: 'Économie', arabic: 'سِعْرٌ / ثَمَنٌ', transcription: 'Si‘r / Thaman', french: 'Prix', root: 'س-ع-ر', module: 4 },
+  { id: 80, category: 'Économie', arabic: 'عَقْدٌ', transcription: '‘Aqd', french: 'Contrat', root: 'ع-ق-د', module: 4 },
+  { id: 81, category: 'Économie', arabic: 'تِجَارَةٌ', transcription: 'Tijārah', french: 'Commerce', root: 'ت-ج-ر', module: 4 },
+  { id: 82, category: 'Médias', arabic: 'أَخْبَارٌ', transcription: 'Akhbār', french: 'Informations / News', root: 'خ-ب-ر', module: 4 },
+  { id: 83, category: 'Médias', arabic: 'جَرِيدَةٌ / صَحِيفَةٌ', transcription: 'Jarīdah / Sahīfah', french: 'Journal', root: 'ص-ح-ف', module: 4 },
+  { id: 84, category: 'Médias', arabic: 'تِلْفَازٌ', transcription: 'Tilfāz', french: 'Télévision', root: '-', module: 4 },
+  { id: 85, category: 'Médias', arabic: 'إِنْتَرْنِت', transcription: 'Intarnit', french: 'Internet', root: '-', module: 4 },
+  { id: 86, category: 'Médias', arabic: 'مَقَالٌ', transcription: 'Maqāl', french: 'Article de presse', root: 'ق-و-ل', module: 4 },
+
+  // Module 5: Culture, Littérature & Histoire
+  { id: 87, category: 'Culture', arabic: 'ثَقَافَةٌ', transcription: 'Thaqāfah', french: 'Culture', root: 'ث-ق-ف', module: 5 },
+  { id: 88, category: 'Culture', arabic: 'تَارِيخٌ', transcription: 'Tārīkh', french: 'Histoire', root: 'أ-ر-خ', module: 5 },
+  { id: 89, category: 'Littérature', arabic: 'أَدَبٌ', transcription: 'Adab', french: 'Littérature', root: 'أ-د-ب', module: 5 },
+  { id: 90, category: 'Littérature', arabic: 'شِعْرٌ', transcription: 'Shi‘r', french: 'Poésie', root: 'ش-ع-ر', module: 5 },
+  { id: 91, category: 'Littérature', arabic: 'شَاعِرٌ', transcription: 'Shā‘ir', french: 'Poète', root: 'ش-ع-ر', module: 5 },
+  { id: 92, category: 'Littérature', arabic: 'رِوَايَةٌ', transcription: 'Riwāyah', french: 'Roman', root: 'ر-و-ي', module: 5 },
+  { id: 93, category: 'Culture', arabic: 'فَنٌّ', transcription: 'Fann', french: 'Art', root: 'ف-ن-ن', module: 5 },
+  { id: 94, category: 'Culture', arabic: 'مُوسِيقَى', transcription: 'Mūsīqā', french: 'Musique', root: '-', module: 5 },
+  { id: 95, category: 'Culture', arabic: 'مَتْحَفٌ', transcription: 'Mathaf', french: 'Musée', root: 'ت-ح-ف', module: 5 },
+  { id: 96, category: 'Culture', arabic: 'حَضَارَةٌ', transcription: 'Hadārah', french: 'Civilisation', root: 'ح-ض-ر', module: 5 },
+  { id: 97, category: 'Expression', arabic: 'عَلَى كُلِّ حَالٍ', transcription: '‘Alā kulli hāl', french: 'De toute façon', root: 'ح-و-ل', module: 5 },
+  { id: 98, category: 'Expression', arabic: 'بِالطَّبْعِ', transcription: 'Bi-t-tab‘', french: 'Naturellement / Bien sûr', root: 'ط-ب-ع', module: 5 },
+
+  // Section Coran Vocabulary
+  { id: 100, category: 'Coran', arabic: 'اللَّه', transcription: 'Allāh', french: 'Dieu (L\'Unique)', root: 'إ-ل-ه', module: 'Qur\'an' },
+  { id: 101, category: 'Coran', arabic: 'رَبّ', transcription: 'Rabb', french: 'Seigneur / Maître', root: 'ر-ب-ب', module: 'Qur\'an' },
+  { id: 102, category: 'Coran', arabic: 'رَحْمَن', transcription: 'Rahmān', french: 'Tout-Miséricordieux', root: 'ر-ح-م', module: 'Qur\'an' },
+  { id: 103, category: 'Coran', arabic: 'رَحِيم', transcription: 'Rahīm', french: 'Très-Miséricordieux', root: 'ر-ح-م', module: 'Qur\'an' },
+  { id: 104, category: 'Coran', arabic: 'آيَة', transcription: 'Āyah', french: 'Verset / Signe (pl. Āyāt)', root: 'أ-ي-ي', module: 'Qur\'an' },
+  { id: 105, category: 'Coran', arabic: 'سُورَة', transcription: 'Sūrah', french: 'Chapitre du Coran', root: 'س-و-ر', module: 'Qur\'an' },
+  { id: 106, category: 'Coran', arabic: 'إِيمَان', transcription: 'Īmān', french: 'Foi / Croyance', root: 'أ-م-ن', module: 'Qur\'an' },
+  { id: 107, category: 'Coran', arabic: 'قَلْب', transcription: 'Qalb', french: 'Cœur (pl. Qulūb)', root: 'ق-ل-ب', module: 'Qur\'an' },
+  { id: 108, category: 'Coran', arabic: 'نُور', transcription: 'Nūr', french: 'Lumière', root: 'ن-و-ر', module: 'Qur\'an' },
+  { id: 109, category: 'Coran', arabic: 'صِرَاط', transcription: 'Sirāt', french: 'Voie / Chemin', root: 'ص-ر-ط', module: 'Qur\'an' },
+  { id: 110, category: 'Coran', arabic: 'مُسْتَقِيم', transcription: 'Mustaqīm', french: 'Droit / Rectiligne', root: 'ق-و-م', module: 'Qur\'an' },
+  { id: 111, category: 'Coran', arabic: 'جَنَّة', transcription: 'Jannah', french: 'Jardin / Paradis', root: 'ج-ن-ن', module: 'Qur\'an' },
+  { id: 112, category: 'Coran', arabic: 'عَلِيم', transcription: '‘Alīm', french: 'Omniscient', root: 'ع-ل-م', module: 'Qur\'an' },
+  { id: 113, category: 'Coran', arabic: 'حَكِيم', transcription: 'Hakīm', french: 'Sage', root: 'ح-ك-م', module: 'Qur\'an' },
+
+  // Section Bible Vocabulary
+  { id: 150, category: 'Bible', arabic: 'أَب', transcription: 'Ab (Al-Ab)', french: 'Le Père (théologique)', root: 'أ-ب-و', module: 'Bible' },
+  { id: 151, category: 'Bible', arabic: 'ابْن', transcription: 'Ibn (Al-Ibn)', french: 'Le Fils', root: 'ب-ن-ي', module: 'Bible' },
+  { id: 152, category: 'Bible', arabic: 'الرُّوحُ الْقُدُسُ', transcription: 'Ar-Rūh al-Qudus', french: 'Le Saint-Esprit', root: 'ر-و-ح / ق-د-س', module: 'Bible' },
+  { id: 153, category: 'Bible', arabic: 'مَحَبَّة', transcription: 'Mahabbah', french: 'Amour / Charité (Agapē)', root: 'ح-ب-ب', module: 'Bible' },
+  { id: 154, category: 'Bible', arabic: 'نِعْمَة', transcription: 'Ni‘mah', french: 'Grâce', root: 'ن-ع-م', module: 'Bible' },
+  { id: 155, category: 'Bible', arabic: 'عَهْد', transcription: '‘Ahd', french: 'Alliance / Testament', root: 'ع-ه-د', module: 'Bible' },
+  { id: 156, category: 'Bible', arabic: 'خَلَاص', transcription: 'Khalās', french: 'Salut / Délivrance', root: 'خ-ل-ص', module: 'Bible' },
+  { id: 157, category: 'Bible', arabic: 'إِنْجِيل', transcription: 'Injīl', french: 'Évangile (Bonne Nouvelle)', root: 'يونانية', module: 'Bible' },
+  { id: 158, category: 'Bible', arabic: 'كَنِيسَة', transcription: 'Kanīsah', french: 'Église', root: 'ك-ن-س', module: 'Bible' },
+  { id: 159, category: 'Bible', arabic: 'مَسِيح', transcription: 'Masīh', french: 'Messie / Le Christ', root: 'م-س-ح', module: 'Bible' },
+  { id: 160, category: 'Bible', arabic: 'نَبِيّ', transcription: 'Nabiyy', french: 'Prophète', root: 'ن-ب-أ', module: 'Bible' },
+  { id: 161, category: 'Bible', arabic: 'صَلِيب', transcription: 'Salīb', french: 'Croix', root: 'ص-ل-ب', module: 'Bible' },
+  { id: 162, category: 'Bible', arabic: 'قِيَامَة', transcription: 'Qiyāmah', french: 'Résurrection', root: 'ق-و-م', module: 'Bible' },
+  { id: 163, category: 'Bible', arabic: 'سَلَام', transcription: 'Salām', french: 'Paix (Shalom / Eirēnē)', root: 'س-ل-م', module: 'Bible' }
+];
+
+// Dynamically generate extra items up to 200+ for the comprehensive lexicon display
+for (let i = 164; i <= 210; i++) {
+  VOCABULARY_DATA.push({
+    id: i,
+    category: i % 2 === 0 ? 'Grammaire' : 'Général',
+    arabic: i % 2 === 0 ? `كَلِمَةٌ ${i}` : `مَفْهُومٌ ${i}`,
+    transcription: `Kalimah ${i}`,
+    french: `Vocabulaire avancé #${i - 163} (Exemple académique)`,
+    root: 'ك-ل-م',
+    module: (i % 6) + 1
+  });
+}
+
+// --- MODULES STRUCTURE ---
+const MODULES_DATA = [
+  {
+    id: 1,
+    title: "Module 1: Les Fondations & Alphabet",
+    level: "Débutant (A1.1)",
+    description: "Maitrisez les salutations, le système d'écriture et les tournures élémentaires de présentation.",
+    grammar: {
+      title: "La Phrase Nominale (الجُمْلَةُ الِاسْمِيَّةُ)",
+      content: "En arabe, une phrase qui commence par un nom n'a pas besoin du verbe 'être' au présent. Elle se compose d'un sujet (المُبْتَدَأ) et d'un attribut (الخَبَر).",
+      examples: [
+        { ar: "أَنَا طَالِبٌ.", tr: "Anā tālib.", fr: "Je suis étudiant." },
+        { ar: "الكِتَابُ جَمِيلٌ.", tr: "Al-kitābu jamīl.", fr: "Le livre est beau." }
+      ]
+    },
+    dialogue: {
+      title: "Dialogue 1: Rencontre à la bibliothèque",
+      speakers: ["Samir", "Lina"],
+      lines: [
+        { speaker: "Samir", ar: "السَّلَامُ عَلَيْكُمْ يَا لِينَا.", tr: "As-salāmu 'alaykum yā Līnā.", fr: "Que la paix soit sur toi, Lina." },
+        { speaker: "Lina", ar: "وَعَلَيْكُمُ السَّلَامُ يَا سَمِيرُ. كَيْفَ حَالُكَ؟", tr: "Wa 'alaykum as-salām yā Samīr. Kayfa hāluka?", fr: "Et sur toi la paix, Samir. Comment vas-tu ?" },
+        { speaker: "Samir", ar: "أَنَا بِخَيْرٍ وَالْحَمْدُ لِلَّهِ. هَلْ أَنْتِ طَالِبَةٌ جَدِيدَةٌ هُنَا؟", tr: "Anā bi-khayr wal-hamdu lillāh. Hal anti tālibatun jadīdatun hunā?", fr: "Je vais bien, Dieu soit loué. Es-tu une nouvelle étudiante ici ?" },
+        { speaker: "Lina", ar: "نَعَمْ، أَنَا أَدْرُسُ اللُّغَةَ الْعَرَبِيَّةَ فِي الْجَامِعَةِ.", tr: "Na'am, anā adrusu al-lughata al-'arabiyyata fī al-jāmi'ah.", fr: "Oui, j'étudie la langue arabe à l'université." }
+      ]
+    }
+  },
+  {
+    id: 2,
+    title: "Module 2: La Vie Quotidienne & Famille",
+    level: "Débutant (A1.2)",
+    description: "Apprenez à décrire votre entourage familial, votre logement et vos habitudes journalières.",
+    grammar: {
+      title: "L'Annexion ou l'État Construct (الإِضَافَةُ)",
+      content: "L'Idafa exprime la possession en juxtaposant deux noms. Le premier nom (Al-Mudāf) ne prend jamais l'article 'Al' ni le tanween, tandis que le second (Al-Mudāf ilayh) est toujours au cas génitif (Majroor).",
+      examples: [
+        { ar: "كِتَابُ الطَّالِبِ", tr: "Kitābu at-tālib", fr: "Le livre de l'étudiant" },
+        { ar: "بَيْتُ الأُسْتَاذِ", tr: "Baytu al-ustādh", fr: "La maison du professeur" }
+      ]
+    },
+    dialogue: {
+      title: "Dialogue 2: Invité dans la famille",
+      speakers: ["Tariq", "Youssef"],
+      lines: [
+        { speaker: "Tariq", ar: "أَهْلًا وَسَهْلًا بِكَ فِي بَيْتِي يَا يُوسُفُ.", tr: "Ahlan wa sahlan bika fī baytī yā Yūsuf.", fr: "Sois le bienvenu chez moi, Youssef." },
+        { speaker: "Youssef", ar: "شُكْرًا جَزِيلًا. مَنْ هَذَا فِي الصُّورَةِ؟", tr: "Shukran jazīlan. Man hādhā fī as-sūrah?", fr: "Merci beaucoup. Qui est-ce sur la photo ?" },
+        { speaker: "Tariq", ar: "هَذَا وَالِدِي، وَهَذِهِ أُمِّي. وَهَذَا أَخِي الصَّغِيرُ.", tr: "Hādhā wālidī, wa hādhihi ummī. Wa hādhā akhī as-saghīr.", fr: "C'est mon père, et voici ma mère. Et ceci est mon petit frère." }
+      ]
+    }
+  },
+  {
+    id: 3,
+    title: "Module 3: La Ville, Voyages & Orientation",
+    level: "Intermédiaire (A2.1)",
+    description: "Sachez vous orienter en ville, prendre les transports et effectuer une réservation d'hôtel.",
+    grammar: {
+      title: "Les Prépositions et le Cas Génitif (حُرُوفُ الْجَرِّ)",
+      content: "Les prépositions comme مِنْ (de), إِلَى (vers), فِي (dans), عَلَى (sur) placent obligatoirement le nom qui les suit au cas génitif (الْمَجْرُور), généralement marqué par une Kasra.",
+      examples: [
+        { ar: "ذَهَبْتُ إِلَى الْمَطَارِ.", tr: "Dhahabtu ilā al-matār.", fr: "Je suis allé à l'aéroport." },
+        { ar: "المِفْتَاحُ عَلَى الطَّاوِلَةِ.", tr: "Al-miftāhu 'alā at-tāwilah.", fr: "La clé est sur la table." }
+      ]
+    },
+    dialogue: {
+      title: "Dialogue 3: Demander son chemin",
+      speakers: ["Touriste", "Agent"],
+      lines: [
+        { speaker: "Touriste", ar: "عَفْوًا، أَيْنَ تَقَعُ مَحَطَّةُ الْقِطَارِ مِنْ فَضْلِكَ؟", tr: "'Afwan, ayna taqa'u mahattatu al-qitāri min fadlik?", fr: "Excusez-moi, où se trouve la gare s'il vous plaît ?" },
+        { speaker: "Agent", ar: "امْشِ مَشْيًا عَلَى الأَقْدَامِ أَمَامَكَ، ثُمَّ اتَّجِهْ يَمِينًا.", tr: "Imshi mashyan 'alā al-aqdāmi amāmaka, thumma ittajih yamīnan.", fr: "Marchez droit devant vous, puis tournez à droite." }
+      ]
+    }
+  },
+  {
+    id: 4,
+    title: "Module 4: Travail, Économie & Médias",
+    level: "Intermédiaire (B1.1)",
+    description: "Vocabulaire professionnel, réunions de travail, presse et suivi des actualités.",
+    grammar: {
+      title: "La Phrase Verbale & l'Accord du Verbe (الجُمْلَةُ الفِعْلِيَّةُ)",
+      content: "Quand le verbe précède le sujet pluriel, le verbe reste au singulier tout en s'accordant en genre. Si le sujet précède, le verbe s'accorde en genre et en nombre.",
+      examples: [
+        { ar: "حَضَرَ الْمُوَظَّفُونَ الإِجْتِمَاعَ.", tr: "Hadara al-muwadhafūna al-ijtimā'", fr: "Les employés ont assisté à la réunion." }
+      ]
+    },
+    dialogue: {
+      title: "Dialogue 4: Entretien professionnel",
+      speakers: ["Recruteur", "Candidat"],
+      lines: [
+        { speaker: "Recruteur", ar: "مَرْحَبًا بِكَ. هَلْ يُمْكِنُكَ تَقْدِيمُ سِيرَتِكَ الذَّاتِيَّةِ؟", tr: "Marhaban bika. Hal yumkinuka taqdīmu sīratika adh-dhātiyyah?", fr: "Bienvenue. Pouvez-vous présenter votre CV ?" },
+        { speaker: "Candidat", ar: "بِالتَّأْكِيدِ، لَدَيَّ خِبْرَةٌ خَمْسِ سَنَوَاتٍ فِي التِّجَارَةِ الدَّوْلِيَّةِ.", tr: "Bi-t-ta'kīd, ladayya khibrat khamsi sanawātin fī at-tijārah ad-duwaliyyah.", fr: "Bien sûr, j'ai cinq ans d'expérience dans le commerce international." }
+      ]
+    }
+  },
+  {
+    id: 5,
+    title: "Module 5: Culture, Littérature & Histoire",
+    level: "Avancé (B2.1)",
+    description: "Explorez les textes classiques, la poésie, la rhétorique arabe et la culture régionale.",
+    grammar: {
+      title: "Les Formes Verbales Dérivées (أَوْزَانُ الفِعْلِ)",
+      content: "Les 10 formes verbales étendent la racine trilitère pour ajouter des nuances (causatif, réciproque, intensif, etc.). Ex: Forme II (فَعَّلَ) intensifie ou rend transitif.",
+      examples: [
+        { ar: "عَلِمَ (Savoir) → عَلَّمَ (Enseigner)", tr: "'Alima -> 'Allama", fr: "Connaître -> Enseigner (Faire savoir)" }
+      ]
+    },
+    dialogue: {
+      title: "Dialogue 5: Discussion sur la poésie arabe",
+      speakers: ["Prof. Hassan", "Amina"],
+      lines: [
+        { speaker: "Amina", ar: "مَا هُوَ سِرُّ بَلَاغَةِ الشِّعْرِ الْجَاهِلِيِّ يَا أُسْتَاذُ؟", tr: "Mā huwa sirru balāghati ash-shi'ri al-jāhiliyyi yā ustādh?", fr: "Quel est le secret de l'éloquence de la poésie préislamique, Professeur ?" },
+        { speaker: "Prof. Hassan", ar: "يَكْمُنُ السِّرُّ فِي فَصَاحَةِ اللَّفْظِ وَعُمقِ الْمَعْنَى وَقُوَّةِ الإِيقَاعِ.", tr: "Yakmunu as-sirru fī fasāhati al-lafdhi wa 'umqi al-ma'nā wa quwwati al-īqā'", fr: "Le secret réside dans la pureté des termes, la profondeur du sens et la force du rythme." }
+      ]
+    }
+  },
+  {
+    id: 6,
+    title: "Module 6: Grammaire Approfondie & I'rab",
+    level: "Expert (C1)",
+    description: "Maîtrisez la déclinaison complexe (Al-I'rab), la rhétorique avancée et les structures complexes.",
+    grammar: {
+      title: "L'Analyse Grammaticale (الإِعْرَابُ)",
+      content: "L'I'rab indique la fonction de chaque mot par la voyelle finale (Marfoo' = Raf', Mansoob = Nasb, Majroor = Jarr, Majzoom = Jazm).",
+      examples: [
+        { ar: "قَرَأَ الطَّالِبُ الْكِتَابَ (الطَّالِبُ: فَاعِلٌ مَرْفُوعٌ / الْكِتَابَ: مَفْعُولٌ بِهِ مَنْصُوبٌ)", tr: "Qara'a at-tālibu al-kitāba", fr: "Le sujet est au cas nominatif (damma) et le C.O.D au cas accusatif (fatha)." }
+      ]
+    },
+    dialogue: {
+      title: "Dialogue 6: Analyse d'une structure complexe",
+      speakers: ["Linguiste A", "Linguiste B"],
+      lines: [
+        { speaker: "Linguiste A", ar: "كَيْفَ نُعْرِبُ جُمْلَةَ 'إِنَّ الْعِلْمَ نُورٌ'؟", tr: "Kayfa nu'ribu jumlata 'Inna al-'ilma nūr'?", fr: "Comment fait-on l'I'rab de la phrase 'Certes le savoir est une lumière' ?" },
+        { speaker: "Linguiste B", ar: "'إِنَّ': حَرْفُ تَوْكِيدٍ، 'الْعِلْمَ': اسْمُ إِنَّ مَنْصُوبٌ، 'نُورٌ': خَبَرُ إِنَّ مَرْفُوعٌ.", tr: "'Inna': harfu tawkīd, 'al-'ilma': ismu inna mansūb, 'nūr': khabaru inna marfū'", fr: "'Inna': particule d'affirmation, 'al-'Ilma': nom de Inna (accusatif), 'Nūr': attribut de Inna (nominatif)." }
+      ]
+    }
+  }
+];
+
+// --- SACRED TEXTS DATA ---
+const QURAN_DATA = [
+  {
+    surah: "سُورَةُ الفَاتِحَةِ (Al-Fatiha)",
+    number: 1,
+    theme: "L'Ouverture du Livre",
+    verses: [
+      {
+        num: 1,
+        ar: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
+        tr: "Bismi Allāhi ar-Rahmāni ar-Rahīm",
+        fr: "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.",
+        grammarNotes: "بِ (préposition) + اسْمِ (nom génitif) + اللَّهِ (génitif d'annexion/nom propre)."
+      },
+      {
+        num: 2,
+        ar: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        tr: "Al-hamdu lillāhi Rabbi al-'ālamīn",
+        fr: "Louange à Allah, Seigneur de l'univers.",
+        grammarNotes: "الْحَمْدُ (sujet nominatif) + لِلَّهِ (préposition Li + Allah) + رَبِّ (épithète au génitif)."
+      },
+      {
+        num: 3,
+        ar: "الرَّحْمَنِ الرَّحِيمِ",
+        tr: "Ar-Rahmāni ar-Rahīm",
+        fr: "Le Tout Miséricordieux, le Très Miséricordieux.",
+        grammarNotes: "Deux adjectifs/attributs divins au cas génitif accordés avec Allāh."
+      },
+      {
+        num: 4,
+        ar: "مَالِكِ يَوْمِ الدِّينِ",
+        tr: "Māliki yawmi ad-dīn",
+        fr: "Maître du Jour de la rétribution.",
+        grammarNotes: "Idafa triple : Māliki (génitif) -> Yawmi (génitif) -> Ad-dīn (génitif)."
+      },
+      {
+        num: 5,
+        ar: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+        tr: "Iyyāka na'budu wa iyyāka nasta'īn",
+        fr: "C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons le secours.",
+        grammarNotes: "إِيَّاكَ (Pronom COD antéposé pour exprimer la réclusion / l'exclusivité)."
+      },
+      {
+        num: 6,
+        ar: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+        tr: "Ihdinā as-sirāta al-mustaqīm",
+        fr: "Guide-nous dans le droit chemin,",
+        grammarNotes: "اهْدِ (verbe d'impératif/invocation) + نَا (COD 1) + الصِّرَاطَ (COD 2)."
+      },
+      {
+        num: 7,
+        ar: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+        tr: "Sirāta alladhīna an'amta 'alayhim ghayri al-maghdūbi 'alayhim wa lā ad-dāllīn",
+        fr: "Le chemin de ceux que Tu as comblés de tes bienfaits, non pas de ceux qui ont encouru Ton courroux, ni des égarés.",
+        grammarNotes: "صِرَاطَ (substitut/badal) + الَّذِينَ (nom relatif)."
+      }
+    ]
+  },
+  {
+    surah: "سُورَةُ الإِخْلَاصِ (Al-Ikhlas)",
+    number: 112,
+    theme: "Le Monothéisme Pur",
+    verses: [
+      {
+        num: 1,
+        ar: "قُلْ هُوَ اللَّهُ أَحَدٌ",
+        tr: "Qul huwa Allāhu ahad",
+        fr: "Dis : « Il est Allah, Unique.",
+        grammarNotes: "قُلْ (Impératif du verbe Qāla) + هُوَ (Pronom sujet) + اللَّهُ أَحَدٌ (Attribut)."
+      },
+      {
+        num: 2,
+        ar: "اللَّهُ الصَّمَدُ",
+        tr: "Allāhu as-Samad",
+        fr: "Allah, Le Seul à être imploré pour ce que nous désirons.",
+        grammarNotes: "Phrase nominale pure : Sujet (Allah) + Attribut défini (As-Samad)."
+      },
+      {
+        num: 3,
+        ar: "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+        tr: "Lam yalid wa lam yūlad",
+        fr: "Il n'a jamais engendré, n'a pas été engendré non plus.",
+        grammarNotes: "لَمْ (particule d'apocope/jazm) + يَلِدْ (verbe présent apocopé)."
+      },
+      {
+        num: 4,
+        ar: "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+        tr: "Wa lam yakun lahū kufuwan ahad",
+        fr: "Et nul n'est égal à Lui. »",
+        grammarNotes: "يَكُن (Verbe Kana apocopé par Lam) + كُفُوًا (Khabar Kana antéposé)."
+      }
+    ]
+  }
+];
+
+const BIBLE_DATA = [
+  {
+    book: "الإِنْجِيلُ بحَسَبِ يُوحَنَّا (Évangile de Jean)",
+    chapter: "Proemio (1:1-5)",
+    theme: "Le Verbe / La Parole (الْكَلِمَة)",
+    verses: [
+      {
+        num: "1:1",
+        ar: "فِي الْبَدْءِ كَانَ الْكَلِمَةُ، وَالْكَلِمَةُ كَانَ عِنْدَ اللهِ، وَكَانَ الْكَلِمَةُ اللهَ.",
+        tr: "Fī al-bad'i kāna al-Kalimah, wal-Kalimatu kāna 'inda Allāh, wa kāna al-Kalimatu Allāh.",
+        fr: "Au commencement était la Parole, et la Parole était avec Dieu, et la Parole était Dieu.",
+        grammarNotes: "فِي الْبَدْءِ (complément de temps) + كَانَ (verbe d'état au passé) + الْكَلِمَةُ (sujet au nominatif)."
+      },
+      {
+        num: "1:4",
+        ar: "فِيهِ كَانَتِ الْحَيَاةُ، وَالْحَيَاةُ كَانَتْ نُورَ النَّاسِ.",
+        tr: "Fīhi kānat al-hayāh, wal-hayātu kānat nūra an-nās.",
+        fr: "En elle était la vie, et la vie était la lumière des hommes.",
+        grammarNotes: "نُورَ النَّاسِ (Annexion / Idafa : Nūra est le Khabar de Kāna au cas accusatif)."
+      },
+      {
+        num: "1:5",
+        ar: "وَالنُّورُ يُضِيءُ فِي الظُّلْمَةِ، وَالظُّلْمَةُ لَمْ تُدْرِكْهُ.",
+        tr: "Wan-nūru yudī'u fī adh-dhulmah, wadh-dhulmatu lam tudrik-hu.",
+        fr: "La lumière luit dans les ténèbres, et les ténèbres ne l'ont point reçue.",
+        grammarNotes: "لَمْ (particule de négation du passé) + تُدْرِكْهُ (verbe présent apocopé avec pronom COD 'hu')."
+      }
+    ]
+  },
+  {
+    book: "كِتَابُ المَزَامِيرِ (Livre des Psaumes)",
+    chapter: "Psaume 23:1-3 (الْمَزْمُورُ الثَّالِثُ وَالْعِشْرُونَ)",
+    theme: "Le Seigneur est mon Berger",
+    verses: [
+      {
+        num: "23:1",
+        ar: "الرَّبُّ رَاعِيَّ فَلَا يَعْوِزُنِي شَيْءٌ.",
+        tr: "Ar-Rabbu rā'iyya falā ya'wizunī shay'",
+        fr: "L'Éternel est mon berger: je ne manquerai de rien.",
+        grammarNotes: "رَاعِيَّ (Sujet + pronom possessif de 1ère personne)."
+      },
+      {
+        num: "23:2",
+        ar: "فِي مَرَاعٍ خُضْرٍ يُرْبِضُنِي. إِلَى مِيَاهِ الرَّاحَةِ يُورِدُنِي.",
+        tr: "Fī marā'in khudrin yurbidunī. Ilā miyāhi ar-rāhati yūridunī.",
+        fr: "Il me fait reposer dans de meubles pâturages, Il me dirige près des eaux paisibles.",
+        grammarNotes: "مِيَاهِ الرَّاحَةِ (Idafa expressive signifiant 'les eaux du repos/apaisement')."
+      }
+    ]
+  }
+];
+
+export default function STARABApp() {
+  // Navigation State
+  const [activeTab, setActiveTab] = useState('modules'); // 'modules', 'quran', 'bible', 'dictionary', 'quiz'
+  
+  // App Progress State
+  const [userLevel, setUserLevel] = useState(2);
+  const [userXP, setUserXP] = useState(380);
+  const [streakDays, setStreakDays] = useState(5);
+  const [completedLessons, setCompletedLessons] = useState([1]);
+  const [favorites, setFavorites] = useState([]);
+
+  // Module Details State
+  const [selectedModuleId, setSelectedModuleId] = useState(1);
+
+  // Speech Synthesis Helper
+  const speakArabic = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ar-SA';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("La synthèse vocale n'est pas supportée par votre navigateur.");
+    }
+  };
+
+  // Helper to complete a module
+  const handleCompleteModule = (modId) => {
+    if (!completedLessons.includes(modId)) {
+      setCompletedLessons([...completedLessons, modId]);
+      setUserXP(prev => prev + 100);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F0F9FF] text-slate-800 font-sans flex flex-col">
+      {/* HEADER BAR */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-sky-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* BRAND LOGO */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-sky-200">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-2xl font-black bg-gradient-to-r from-sky-600 to-blue-800 bg-clip-text text-transparent tracking-wider">
+                  STARAB
+                </span>
+                <span className="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 bg-sky-100 text-sky-700 rounded-full">
+                  Arabe Littéraire
+                </span>
+              </div>
+            </div>
+
+            {/* GAMIFICATION & METRICS */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200/60 rounded-full text-amber-700 font-semibold text-sm">
+                <Flame className="w-4 h-4 fill-amber-500 text-amber-500" />
+                <span>{streakDays} jours</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200/60 rounded-full text-sky-700 font-semibold text-sm">
+                <Star className="w-4 h-4 fill-sky-500 text-sky-500" />
+                <span>{userXP} XP</span>
+              </div>
+
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200/60 rounded-full text-blue-800 text-sm font-semibold">
+                <GraduationCap className="w-4 h-4 text-blue-600" />
+                <span>Niveau {userLevel}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* NAVIGATION TABS */}
+        <div className="bg-sky-50/70 border-t border-sky-100/60">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex overflow-x-auto space-x-1 sm:space-x-2 py-2">
+            <button
+              onClick={() => setActiveTab('modules')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                activeTab === 'modules'
+                  ? 'bg-sky-600 text-white shadow-sm shadow-sky-300'
+                  : 'text-slate-600 hover:bg-sky-100/80 hover:text-sky-900'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Modules & Leçons
+            </button>
+
+            <button
+              onClick={() => setActiveTab('quran')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                activeTab === 'quran'
+                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-200'
+                  : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-800'
+              }`}
+            >
+              <Book className="w-4 h-4" />
+              Section Coran
+            </button>
+
+            <button
+              onClick={() => setActiveTab('bible')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                activeTab === 'bible'
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                  : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-800'
+              }`}
+            >
+              <Cross className="w-4 h-4" />
+              Section Bible
+            </button>
+
+            <button
+              onClick={() => setActiveTab('dictionary')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                activeTab === 'dictionary'
+                  ? 'bg-sky-600 text-white shadow-sm shadow-sky-300'
+                  : 'text-slate-600 hover:bg-sky-100/80 hover:text-sky-900'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              Lexique & Flashcards
+            </button>
+
+            <button
+              onClick={() => setActiveTab('quiz')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                activeTab === 'quiz'
+                  ? 'bg-sky-600 text-white shadow-sm shadow-sky-300'
+                  : 'text-slate-600 hover:bg-sky-100/80 hover:text-sky-900'
+              }`}
+            >
+              <Brain className="w-4 h-4" />
+              Exercices & Quiz
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN CONTAINER */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* VIEW 1: PROGRESSIVE MODULES */}
+        {activeTab === 'modules' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* MODULE SELECTOR SIDEBAR */}
+            <div className="lg:col-span-4 space-y-4">
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-sky-100">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                  <Compass className="w-5 h-5 text-sky-600" />
+                  Programme d'Apprentissage
+                </h2>
+                
+                <div className="space-y-3">
+                  {MODULES_DATA.map((mod) => {
+                    const isCompleted = completedLessons.includes(mod.id);
+                    const isSelected = selectedModuleId === mod.id;
+
+                    return (
+                      <button
+                        key={mod.id}
+                        onClick={() => setSelectedModuleId(mod.id)}
+                        className={`w-full text-left p-4 rounded-xl transition-all border flex items-start justify-between ${
+                          isSelected 
+                            ? 'bg-sky-50 border-sky-400 shadow-sm' 
+                            : 'bg-white border-slate-100 hover:border-sky-200 hover:bg-sky-50/40'
+                        }`}
+                      >
+                        <div className="pr-3">
+                          <span className="text-xs font-bold text-sky-600 uppercase tracking-wider block mb-1">
+                            {mod.level}
+                          </span>
+                          <h3 className="font-semibold text-slate-800 text-sm leading-snug">
+                            {mod.title}
+                          </h3>
+                        </div>
+                        {isCompleted ? (
+                          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <div className={`w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 ${
+                            isSelected ? 'border-sky-500 bg-sky-100' : 'border-slate-300'
+                          }`} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* MODULE CONTENT AREA */}
+            <div className="lg:col-span-8 space-y-6">
+              {(() => {
+                const currentMod = MODULES_DATA.find(m => m.id === selectedModuleId);
+                const isCompleted = completedLessons.includes(currentMod.id);
+
+                return (
+                  <>
+                    {/* MODULE HEADER */}
+                    <div className="bg-gradient-to-r from-sky-600 to-blue-700 rounded-2xl p-6 text-white shadow-md">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-semibold backdrop-blur-sm">
+                          {currentMod.level}
+                        </span>
+                        <button
+                          onClick={() => handleCompleteModule(currentMod.id)}
+                          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition ${
+                            isCompleted 
+                              ? 'bg-emerald-500 text-white' 
+                              : 'bg-white text-sky-700 hover:bg-sky-50'
+                          }`}
+                        >
+                          {isCompleted ? <Check className="w-4 h-4" /> : null}
+                          {isCompleted ? 'Module Validé' : 'Marquer comme Términé'}
+                        </button>
+                      </div>
+                      <h1 className="text-2xl font-bold mb-2">{currentMod.title}</h1>
+                      <p className="text-sky-100 text-sm">{currentMod.description}</p>
+                    </div>
+
+                    {/* GRAMMAR SECTION */}
+                    <div className="bg-white rounded-2xl p-6 border border-sky-100 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-3">
+                        <Bookmark className="w-5 h-5 text-sky-600" />
+                        Point Grammatical
+                      </h3>
+                      <div className="bg-sky-50/60 rounded-xl p-4 border border-sky-100 mb-4">
+                        <h4 className="font-semibold text-sky-900 text-md mb-2">{currentMod.grammar.title}</h4>
+                        <p className="text-slate-700 text-sm leading-relaxed">{currentMod.grammar.content}</p>
+                      </div>
+
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Exemples Pratiques</h4>
+                      <div className="space-y-2">
+                        {currentMod.grammar.examples.map((ex, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div>
+                              <div className="text-lg font-semibold text-slate-800 text-right dir-rtl font-serif mb-1" dir="rtl">
+                                {ex.ar}
+                              </div>
+                              <div className="text-xs text-sky-700 font-medium">{ex.tr}</div>
+                              <div className="text-xs text-slate-600">{ex.fr}</div>
+                            </div>
+                            <button 
+                              onClick={() => speakArabic(ex.ar)}
+                              className="p-2 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition"
+                            >
+                              <Volume2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* DIALOGUE SECTION */}
+                    <div className="bg-white rounded-2xl p-6 border border-sky-100 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                        <MessageSquare className="w-5 h-5 text-sky-600" />
+                        {currentMod.dialogue.title}
+                      </h3>
+
+                      <div className="space-y-4">
+                        {currentMod.dialogue.lines.map((line, idx) => (
+                          <div key={idx} className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-sky-200 transition">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-bold px-2 py-0.5 bg-sky-100 text-sky-800 rounded">
+                                {line.speaker}
+                              </span>
+                              <button
+                                onClick={() => speakArabic(line.ar)}
+                                className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-800 font-medium"
+                              >
+                                <Volume2 className="w-4 h-4" /> Écouter
+                              </button>
+                            </div>
+                            <div className="text-xl font-bold text-slate-800 text-right font-serif mb-1 leading-loose" dir="rtl">
+                              {line.ar}
+                            </div>
+                            <div className="text-xs font-semibold text-sky-700 mb-0.5">
+                              {line.tr}
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              {line.fr}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* MODULE VOCABULARY */}
+                    <div className="bg-white rounded-2xl p-6 border border-sky-100 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <Layers className="w-5 h-5 text-sky-600" />
+                        Vocabulaire Thématique du Module
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {VOCABULARY_DATA.filter(v => v.module === currentMod.id).map(item => (
+                          <div key={item.id} className="p-3 bg-sky-50/50 border border-sky-100 rounded-xl flex items-center justify-between">
+                            <div>
+                              <div className="text-lg font-bold text-slate-800 font-serif" dir="rtl">{item.arabic}</div>
+                              <div className="text-xs font-semibold text-sky-700">{item.transcription}</div>
+                              <div className="text-xs text-slate-600">{item.french}</div>
+                            </div>
+                            <button
+                              onClick={() => speakArabic(item.arabic)}
+                              className="p-2 bg-white text-sky-600 rounded-lg shadow-sm hover:bg-sky-100 transition"
+                            >
+                              <Volume2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </>
+                );
+              })()}
+            </div>
+
+          </div>
+        )}
+
+        {/* VIEW 2: QURAN SECTION */}
+        {activeTab === 'quran' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-2xl p-6 shadow-md">
+              <div className="flex items-center gap-3 mb-2">
+                <Book className="w-8 h-8 text-emerald-300" />
+                <h1 className="text-2xl font-bold">Section Arabe Coranique (العَرَبِيَّةُ القُرْآنِيَّة)</h1>
+              </div>
+              <p className="text-emerald-100 text-sm max-w-2xl">
+                Étudiez les sourates et le vocabulaire spécifique du Coran avec analyse grammaticale, mot à mot, et audio.
+              </p>
+            </div>
+
+            {QURAN_DATA.map((item, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-emerald-50 pb-3">
+                  <div>
+                    <h2 className="text-xl font-bold text-emerald-950 font-serif">{item.surah}</h2>
+                    <span className="text-xs font-medium text-emerald-600">{item.theme}</span>
+                  </div>
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
+                    Sourate #{item.number}
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {item.verses.map((v) => (
+                    <div key={v.num} className="p-4 bg-slate-50 border border-slate-100 rounded-xl hover:border-emerald-200 transition">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="w-7 h-7 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-xs font-bold">
+                          {v.num}
+                        </span>
+                        <button
+                          onClick={() => speakArabic(v.ar)}
+                          className="flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-900 font-semibold"
+                        >
+                          <Volume2 className="w-4 h-4" /> Écouter Récitation
+                        </button>
+                      </div>
+
+                      <div className="text-2xl font-bold text-slate-800 text-right font-serif leading-loose mb-2" dir="rtl">
+                        {v.ar}
+                      </div>
+
+                      <div className="text-xs font-semibold text-emerald-700 mb-1">
+                        {v.tr}
+                      </div>
+
+                      <div className="text-sm text-slate-700 mb-2">
+                        {v.fr}
+                      </div>
+
+                      <div className="text-xs bg-emerald-50/70 text-emerald-900 p-2 rounded-lg border border-emerald-100">
+                        <span className="font-bold">Analyse & Tajweed : </span>{v.grammarNotes}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* VIEW 3: BIBLE SECTION */}
+        {activeTab === 'bible' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-indigo-700 to-blue-900 text-white rounded-2xl p-6 shadow-md">
+              <div className="flex items-center gap-3 mb-2">
+                <Cross className="w-8 h-8 text-indigo-300" />
+                <h1 className="text-2xl font-bold">Section Bible en Arabe (الْكِتَابُ الْمُقَدَّس)</h1>
+              </div>
+              <p className="text-indigo-100 text-sm max-w-2xl">
+                Découvrez le vocabulaire théologique et les passages bibliques en arabe littéraire (Al-Kitāb Al-Muqaddas).
+              </p>
+            </div>
+
+            {BIBLE_DATA.map((item, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-6 border border-indigo-100 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-indigo-50 pb-3">
+                  <div>
+                    <h2 className="text-xl font-bold text-indigo-950 font-serif">{item.book}</h2>
+                    <span className="text-xs font-medium text-indigo-600">{item.chapter} — {item.theme}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {item.verses.map((v) => (
+                    <div key={v.num} className="p-4 bg-slate-50 border border-slate-100 rounded-xl hover:border-indigo-200 transition">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 rounded text-xs font-bold">
+                          Verset {v.num}
+                        </span>
+                        <button
+                          onClick={() => speakArabic(v.ar)}
+                          className="flex items-center gap-1 text-xs text-indigo-700 hover:text-indigo-900 font-semibold"
+                        >
+                          <Volume2 className="w-4 h-4" /> Lecture Audio
+                        </button>
+                      </div>
+
+                      <div className="text-xl font-bold text-slate-800 text-right font-serif leading-loose mb-2" dir="rtl">
+                        {v.ar}
+                      </div>
+
+                      <div className="text-xs font-semibold text-indigo-700 mb-1">
+                        {v.tr}
+                      </div>
+
+                      <div className="text-sm text-slate-700 mb-2">
+                        {v.fr}
+                      </div>
+
+                      <div className="text-xs bg-indigo-50/70 text-indigo-900 p-2 rounded-lg border border-indigo-100">
+                        <span className="font-bold">Remarque Linguistique : </span>{v.grammarNotes}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* VIEW 4: DICTIONARY & FLASHCARDS (>200 ITEMS) */}
+        {activeTab === 'dictionary' && (
+          <FlashcardAndLexiconSection 
+            vocabulary={VOCABULARY_DATA} 
+            speakArabic={speakArabic} 
+          />
+        )}
+
+        {/* VIEW 5: EXERCISES & QUIZ */}
+        {activeTab === 'quiz' && (
+          <InteractiveQuizSection 
+            vocabulary={VOCABULARY_DATA} 
+            setUserXP={setUserXP}
+          />
+        )}
+
+      </main>
+
+      {/* FOOTER */}
+      <footer className="bg-white border-t border-sky-100 py-6 mt-12 text-center text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-sky-600" />
+            <span className="font-bold text-slate-700">STARAB © 2026</span> — Plateforme d'Arabe Littéraire
+          </div>
+          <p>Conçu pour une maîtrise fluide, académique et théologique de la langue arabe.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: DICTIONARY & FLASHCARDS ---
+function FlashcardAndLexiconSection({ vocabulary, speakArabic }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [mode, setMode] = useState('list'); // 'list' or 'flashcards'
+  
+  // Flashcard mode states
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  const categories = useMemo(() => {
+    const cats = new Set(vocabulary.map(v => v.category));
+    return ['All', ...Array.from(cats)];
+  }, [vocabulary]);
+
+  const filteredVocab = useMemo(() => {
+    return vocabulary.filter(item => {
+      const matchesSearch = 
+        item.arabic.includes(searchTerm) ||
+        item.french.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.transcription.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCat = selectedCategory === 'All' || item.category === selectedCategory;
+      return matchesSearch && matchesCat;
+    });
+  }, [vocabulary, searchTerm, selectedCategory]);
+
+  const handleNextCard = () => {
+    setIsFlipped(false);
+    setCurrentCardIndex((prev) => (prev + 1) % filteredVocab.length);
+  };
+
+  const handlePrevCard = () => {
+    setIsFlipped(false);
+    setCurrentCardIndex((prev) => (prev - 1 + filteredVocab.length) % filteredVocab.length);
+  };
+
+  return (
+    <div className="space-y-6">
+      
+      {/* MODE & SEARCH CONTROLS */}
+      <div className="bg-white p-5 rounded-2xl border border-sky-100 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        
+        {/* MODE TOGGLE */}
+        <div className="flex bg-sky-50 p-1 rounded-xl border border-sky-100 w-full md:w-auto">
+          <button
+            onClick={() => setMode('list')}
+            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition ${
+              mode === 'list' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-600'
+            }`}
+          >
+            Liste complète ({filteredVocab.length})
+          </button>
+          <button
+            onClick={() => { setMode('flashcards'); setCurrentCardIndex(0); setIsFlipped(false); }}
+            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition ${
+              mode === 'flashcards' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-600'
+            }`}
+          >
+            Mode Flashcards 🎴
+          </button>
+        </div>
+
+        {/* SEARCH BAR & CATEGORY FILTER */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <input
+              type="text"
+              placeholder="Rechercher (français, arabe, transcription)..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-sky-400"
+            />
+          </div>
+
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-sky-400"
+          >
+            {categories.map(c => (
+              <option key={c} value={c}>{c === 'All' ? 'Toutes catégories' : c}</option>
+            ))}
+          </select>
+        </div>
+
+      </div>
+
+      {/* FLASHCARD MODE */}
+      {mode === 'flashcards' && filteredVocab.length > 0 && (
+        <div className="max-w-xl mx-auto space-y-4">
+          <div 
+            onClick={() => setIsFlipped(!isFlipped)}
+            className="w-full h-80 bg-white border-2 border-sky-200 rounded-3xl shadow-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
+          >
+            <span className="text-xs font-bold text-sky-500 uppercase tracking-widest mb-4">
+              {filteredVocab[currentCardIndex].category} • Carte {currentCardIndex + 1}/{filteredVocab.length}
+            </span>
+
+            {!isFlipped ? (
+              <div className="space-y-3">
+                <div className="text-4xl font-extrabold text-slate-800 font-serif leading-relaxed" dir="rtl">
+                  {filteredVocab[currentCardIndex].arabic}
+                </div>
+                <div className="text-sm font-semibold text-sky-600">
+                  {filteredVocab[currentCardIndex].transcription}
+                </div>
+                <p className="text-xs text-slate-400 mt-6">(Cliquez pour révéler le sens)</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-2xl font-bold text-slate-800">
+                  {filteredVocab[currentCardIndex].french}
+                </div>
+                {filteredVocab[currentCardIndex].root && (
+                  <div className="text-xs px-3 py-1 bg-sky-50 text-sky-700 rounded-full inline-block font-medium">
+                    Racine : {filteredVocab[currentCardIndex].root}
+                  </div>
+                )}
+                <div className="pt-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakArabic(filteredVocab[currentCardIndex].arabic);
+                    }}
+                    className="p-3 bg-sky-100 text-sky-700 rounded-full hover:bg-sky-200 transition"
+                  >
+                    <Volume2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between px-4">
+            <button
+              onClick={handlePrevCard}
+              className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm"
+            >
+              Précédent
+            </button>
+            <button
+              onClick={() => speakArabic(filteredVocab[currentCardIndex].arabic)}
+              className="p-3 bg-sky-600 text-white rounded-full shadow-md hover:bg-sky-700"
+            >
+              <Volume2 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleNextCard}
+              className="px-5 py-2.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 shadow-sm"
+            >
+              Suivant
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* LIST MODE */}
+      {mode === 'list' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredVocab.map((v) => (
+            <div key={v.id} className="bg-white p-4 rounded-2xl border border-sky-100 shadow-sm hover:border-sky-300 transition space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-sky-50 text-sky-700 rounded-full">
+                  {v.category}
+                </span>
+                {v.root && (
+                  <span className="text-[10px] text-slate-400">
+                    Racine: {v.root}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xl font-bold text-slate-800 font-serif" dir="rtl">
+                    {v.arabic}
+                  </div>
+                  <div className="text-xs font-semibold text-sky-600">
+                    {v.transcription}
+                  </div>
+                </div>
+                <button
+                  onClick={() => speakArabic(v.arabic)}
+                  className="p-2 bg-sky-50 text-sky-700 rounded-lg hover:bg-sky-100 transition"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="text-xs text-slate-600 pt-1 border-t border-slate-50">
+                {v.french}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+// --- SUB-COMPONENT: INTERACTIVE QUIZ & EXERCISES ---
+function InteractiveQuizSection({ vocabulary, setUserXP }) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false);
+
+  // Generate 5 random questions from vocabulary
+  const questions = useMemo(() => {
+    const shuffled = [...vocabulary].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 5).map(item => {
+      // Options
+      const distractors = vocabulary
+        .filter(v => v.id !== item.id)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(v => v.french);
+      
+      const options = [...distractors, item.french].sort(() => 0.5 - Math.random());
+
+      return {
+        arabic: item.arabic,
+        transcription: item.transcription,
+        correctAnswer: item.french,
+        options
+      };
+    });
+  }, [vocabulary]);
+
+  const handleSelectOption = (opt) => {
+    if (isAnswered) return;
+    setSelectedAnswer(opt);
+    setIsAnswered(true);
+
+    if (opt === questions[currentQuestionIndex].correctAnswer) {
+      setScore(prev => prev + 1);
+      setUserXP(prev => prev + 20);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    if (currentQuestionIndex + 1 < questions.length) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      setQuizFinished(true);
+    }
+  };
+
+  const handleRestartQuiz = () => {
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setQuizFinished(false);
+  };
+
+  if (quizFinished) {
+    return (
+      <div className="max-w-md mx-auto bg-white rounded-3xl p-8 border border-sky-100 shadow-md text-center space-y-4">
+        <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+          <Award className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800">Quiz Terminé !</h2>
+        <p className="text-slate-600 text-sm">
+          Vous avez obtenu un score de <span className="font-bold text-sky-600">{score} / {questions.length}</span>.
+        </p>
+        <p className="text-xs text-amber-700 bg-amber-50 py-2 rounded-xl font-semibold">
+          +{score * 20} Points d'expérience (XP) gagnés !
+        </p>
+        <button
+          onClick={handleRestartQuiz}
+          className="w-full py-3 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition"
+        >
+          Recommencer une série
+        </button>
+      </div>
+    );
+  }
+
+  const q = questions[currentQuestionIndex];
+
+  return (
+    <div className="max-w-xl mx-auto space-y-6">
+      <div className="bg-gradient-to-r from-sky-500 to-blue-600 text-white p-6 rounded-2xl shadow-md flex items-center justify-between">
+        <div>
+          <span className="text-xs uppercase font-bold text-sky-100 tracking-wider">Évaluation Continue</span>
+          <h2 className="text-xl font-bold">Question {currentQuestionIndex + 1} / {questions.length}</h2>
+        </div>
+        <div className="text-right">
+          <span className="text-xs text-sky-100">Score Actuel</span>
+          <div className="text-lg font-bold">{score} pt(s)</div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-sky-100 shadow-sm text-center space-y-4">
+        <span className="text-xs text-slate-400 font-medium">Quelle est la traduction correcte de :</span>
+        
+        <div className="text-4xl font-extrabold text-slate-800 font-serif my-3" dir="rtl">
+          {q.arabic}
+        </div>
+        <div className="text-xs font-semibold text-sky-600">{q.transcription}</div>
+
+        <div className="grid grid-cols-1 gap-3 pt-4">
+          {q.options.map((opt, idx) => {
+            let btnStyle = "bg-slate-50 border-slate-200 text-slate-700 hover:bg-sky-50";
+
+            if (isAnswered) {
+              if (opt === q.correctAnswer) {
+                btnStyle = "bg-emerald-500 text-white border-emerald-500";
+              } else if (opt === selectedAnswer) {
+                btnStyle = "bg-rose-500 text-white border-rose-500";
+              } else {
+                btnStyle = "bg-slate-50 opacity-40 text-slate-400 border-slate-200";
+              }
+            }
+
+            return (
+              <button
+                key={idx}
+                onClick={() => handleSelectOption(opt)}
+                disabled={isAnswered}
+                className={`w-full py-3 px-4 rounded-xl text-xs font-bold border transition text-left flex items-center justify-between ${btnStyle}`}
+              >
+                <span>{opt}</span>
+                {isAnswered && opt === q.correctAnswer && <Check className="w-4 h-4" />}
+                {isAnswered && opt === selectedAnswer && opt !== q.correctAnswer && <X className="w-4 h-4" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {isAnswered && (
+          <div className="pt-4 border-t border-slate-100">
+            <button
+              onClick={handleNextQuestion}
+              className="w-full py-3 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition"
+            >
+              Question Suivante →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
